@@ -38,8 +38,8 @@ mut2Seg<-function(mutData,segData,verbose=TRUE){
 		          segData[,6:ncol(segData)])
 		mutGr<-GenomicRanges::GRanges(seqnames=factor(mutData$chr, levels=newChr), ranges=IRanges::IRanges(mutData$position,end=mutData$position))
 		ov<-GenomicRanges::findOverlaps(segGr,mutGr)
-		qHits<-GenomicRanges::queryHits(ov)
-		sHits<-GenomicRanges::subjectHits(ov)
+		qHits<-as.matrix(ov)[,"queryHits"]
+		sHits<-as.matrix(ov)[,"subjectHits"]
 		combDf<-data.frame(mutData[sHits,],
 			seg_start=start(segGr)[qHits],seg_end=end(segGr)[qHits],
 				as.data.frame(GenomicRanges::values(segGr)[qHits,]))
@@ -61,7 +61,7 @@ mut2Seg<-function(mutData,segData,verbose=TRUE){
 		if(nmissing>0){
 			dummyData<-data.frame(seg_start=NA,seg_end=NA,matrix(NA,ncol=ncol(GenomicRanges::values(segGr)),nrow=nmissing))
 			names(dummyData)<-c("seg_start","seg_end",colnames(GenomicRanges::values(segGr)))
-			if(length(sHits)>0) missDat<-cbind(mutData[-sHits(ov),],dummyData)
+			if(length(sHits)>0) missDat<-cbind(mutData[-sHits,],dummyData)
 			else{
 				missDat<-cbind(mutData,dummyData) #means there were no mutations in these segments!
 				if(verbose) cat("there was no overlap between the mutations and the segments\n")
